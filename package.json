@@ -1,0 +1,17 @@
+{
+  "name": "playwright-mocking-lab",
+  "version": "1.0.0",
+  "description": "Track 1 — Topic 1: Playwright Mocking (REST first)",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.2"
+  }
+}
