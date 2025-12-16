@@ -25,56 +25,68 @@ This topic is DONE when I can:
 
 ---
 
-## ✅ DoD Checklist
+## ✅ Topic 1 — Playwright Mocking (REST + GraphQL)
 
-### 1️⃣ Mocking Fundamentals
-- [ ] Explain request flow:  
-  `Browser → Playwright → route / HAR → mocked response`
-- [ ] Explain when mocking is appropriate
-- [ ] Explain when **not** to mock (true E2E coverage)
-- [ ] Explain what mocking does *not* validate
+### Mental Model (keep in mind)
+Browser → Playwright → Network interception → UI behavior  
+Mocks **replace the backend**, not the UI or user flows.
 
 ---
 
-### 2️⃣ REST API Mocking (Primary Focus)
-- [ ] Identify REST calls in browser DevTools
-- [ ] Intercept a REST API using `page.route()` or `context.route()`
-- [ ] Fulfill a request with custom JSON using `route.fulfill()`
-- [ ] Assert UI behavior using mocked response data
-- [ ] Simulate API failure using `route.abort()`
-- [ ] Use `route.continue()` for passthrough requests
+### 1. Mocking Fundamentals
+- [x] Understand request flow: Browser → Playwright → route / HAR → response
+- [x] Know when mocking is useful (UI isolation, stability, speed)
+- [x] Know when NOT to mock (true E2E, backend validation)
+- [x] Understand what mocking does NOT test (backend logic, contracts)
 
 ---
 
-### 3️⃣ GraphQL Mocking
-- [ ] Identify GraphQL requests in DevTools
-- [ ] Extract `operationName` or query
-- [ ] Mock a GraphQL query or mutation
-- [ ] Fulfill GraphQL responses with custom data
-- [ ] Assert UI behavior using mocked GraphQL response
+### 2. REST API Mocking
+- [x] Identify REST calls using DevTools (Network tab)
+- [x] Intercept REST APIs using `page.route()` / `context.route()`
+- [x] Fulfill requests with custom JSON using `route.fulfill()`
+- [x] Assert UI behavior driven by mocked data
+- [x] Simulate API failures using `route.abort()`
+- [x] Allow real network using `route.continue()`
+- [x] Modify headers or payload before continuing a request
 
 ---
 
-### 4️⃣ Other Playwright Mocking Techniques
-- [ ] Modify headers or payload before continuing a request
-- [ ] Record network traffic using HAR
-- [ ] Replay mocked responses using `routeFromHAR()`
-- [ ] Explain pros/cons of HAR-based mocking
+### 3. HAR-based Mocking
+- [x] Record network traffic to HAR
+- [x] Replay API responses using `routeFromHAR()`
+- [x] Explain `embed` vs `omit` vs `attach`
+- [x] Update HAR entries using `update: true`
+- [x] Restrict HAR to specific URLs
+- [x] Understand that update can overwrite non-matching entries
+- [x] Validate response structure (shape/signature check)
 
 ---
 
-### 5️⃣ Mock Control
-- [ ] Add an environment flag (e.g. `USE_MOCKS=true`)
-- [ ] Toggle between mocked and real backend runs
-- [ ] Run the same test in mocked vs non-mocked mode
+### 4. GraphQL Mocking
+- [x] Identify GraphQL requests and operation names
+- [x] Intercept GraphQL POST requests
+- [x] Mock GraphQL queries and mutations
+- [x] Fulfill GraphQL responses with custom data
+- [x] Assert UI behavior using mocked GraphQL responses
+- [x] Understand UI challenges with GraphiQL / CodeMirror editors
 
 ---
 
-## ✅ Completion Criteria
-This topic is complete when:
-- All relevant checklist items are ticked
-- At least one UI test runs fully on mocked APIs
-- I can explain the setup to another engineer
+### 5. Mock Toggle / Control
+- [x] Add `USE_MOCKS` environment flag
+- [x] Run same tests in real vs mocked mode
+- [x] Control mocking behavior at runtime (not per test)
+- [x] Log whether tests are running in mocked or real mode
+
+---
+
+### Topic 1 Done When:
+- [x] At least one UI test runs fully on mocked REST APIs
+- [x] At least one UI test runs on mocked GraphQL APIs
+- [x] HAR record → replay → update flow is understood
+- [x] Can explain the setup without referring to notes
+
 
 ---
 
@@ -84,7 +96,8 @@ This topic is complete when:
 - Refactoring and framework design come later
 
 
-TOPICS ON HIGH LEVEL - 
+
+## QUICK LOOK ON CONCEPTS - 
 
 - fulfill
 - abort
