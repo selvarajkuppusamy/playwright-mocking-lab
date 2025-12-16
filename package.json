@@ -6,7 +6,17 @@
   "directories": {
     "test": "tests"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "playwright test",
+
+    "test:mocks": "USE_MOCKS=true playwright test",
+
+    "har:check": "npm run test -- tests/04-har-structure-check.spec.ts --project=chromium",
+    "har:update": "npm run test -- tests/03-update-har.spec.ts --project=chromium",
+
+    "har:check:headed": "npm run har:check -- --headed",
+    "har:update:headed": "npm run har:update -- --headed"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

@@ -82,3 +82,16 @@ This topic is complete when:
 - Keep implementations simple and explicit
 - Avoid abstractions in this topic
 - Refactoring and framework design come later
+
+
+TOPICS ON HIGH LEVEL - 
+
+- fulfill
+- abort
+- continue
+- record har
+- replay using har
+- update har 
+  - record only for specific url or conditions
+  - record only if json structure changed
+- mock toggle on off
