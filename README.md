@@ -105,6 +105,6 @@ Mocks **replace the backend**, not the UI or user flows.
 - record har
 - replay using har
 - update har 
-  - record only for specific url or conditions
-  - record only if json structure changed
+  - record only for specific url or conditions (query, operationName, payload, etc.)
+  - record/ update only if json structure changed (has both pros and cons)
 - mock toggle on off
