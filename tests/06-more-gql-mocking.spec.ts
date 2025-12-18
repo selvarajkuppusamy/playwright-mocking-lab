@@ -121,7 +121,8 @@ test.describe("GraphQL UI – Mocking with Playwright", () => {
   });
 
   // RUN THIS TEST ONLY IN DEBUG MODE, AS IT NEEDS MANUAL INTERVENTION
-  test.skip("mock GraphQL query using variables", async ({ page }) => {
+  // THIS TEST WILL FAIL IN CI, DUE TO ABOVE, BUT KEEP IT FOR FAILURE REFERENCE
+  test("mock GraphQL query using variables", async ({ page }) => {
     await runQuery(
       page,
       `query CountryByCode($code: ID!) {
