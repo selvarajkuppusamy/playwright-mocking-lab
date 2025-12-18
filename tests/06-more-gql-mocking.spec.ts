@@ -84,15 +84,13 @@ test.describe("GraphQL UI – Mocking with Playwright", () => {
     // Optional variables
     if (variables) {
         await page.getByRole("button", { name: "Variables" }).click();
-
         const varsBox = page
             .getByRole("region", { name: "Variables" })
             .getByRole("textbox")
             .first();
-
         await varsBox.waitFor({ state: "visible" });
-        // Do these steps manually, so clear the box and click inside before inserting text
-        // // await varsBox.click();
+        // DO MANUAL CLEARING FOR NOW BY CLICKING AND DELETING THE CONTENT
+        // await varsBox.click();
         // await page.keyboard.press(isMac ? "Meta+A" : "Control+A");
         // await page.keyboard.press("Backspace");
         await page.keyboard.insertText(variables);
@@ -122,7 +120,8 @@ test.describe("GraphQL UI – Mocking with Playwright", () => {
     }
   });
 
-  test("mock GraphQL query using variables", async ({ page }) => {
+  // RUN THIS TEST ONLY IN DEBUG MODE, AS IT NEEDS MANUAL INTERVENTION
+  test.skip("mock GraphQL query using variables", async ({ page }) => {
     await runQuery(
       page,
       `query CountryByCode($code: ID!) {
@@ -142,7 +141,7 @@ test.describe("GraphQL UI – Mocking with Playwright", () => {
     }
   });
 
-  test.only("mock GraphQL error response", async ({ page }) => {
+  test("mock GraphQL error response", async ({ page }) => {
     await runQuery(
       page,
       `query GetCountriesError {
