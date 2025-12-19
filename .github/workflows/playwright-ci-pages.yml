@@ -44,11 +44,22 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
 
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      pages_url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
 
+      - name: Show deployed Pages URL
+        run: >
+          echo "Deployed report URL: ${{ steps.deployment.outputs.page_url }}"
+
+  show_url:
+    if: always() && github.ref == 'refs/heads/master'
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - run: >
+          echo "Job output URL: ${{ needs.deploy.outputs.pages_url }}"
