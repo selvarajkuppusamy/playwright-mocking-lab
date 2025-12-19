@@ -13,7 +13,8 @@ permissions:
   id-token: write
 
 jobs:
-  test:
+  playwright_tests:
+    name: Run Playwright tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
