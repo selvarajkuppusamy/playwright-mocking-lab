@@ -1,5 +1,6 @@
 name: Playwright CI + Pages Report (Mocking Lab)
 
+# This workflow is set up to only run on manual trigger for now due to duplicate job in playwright-ci-pages.yml
 on:
   # push:
   #   branches: ["master"]
