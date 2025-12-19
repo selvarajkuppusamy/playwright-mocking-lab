@@ -14,10 +14,6 @@ jobs:
     if: ${{ github.event.workflow_run.event == 'pull_request' }}
     runs-on: ubuntu-latest
 
-    outputs:
-      pr_num: ${{ steps.pr.outputs.pr_num }}
-      latest_url: ${{ steps.out.outputs.latest_url }}
-
     steps:
       - name: Download Playwright report artifact from triggering run
         env:
@@ -37,7 +33,7 @@ jobs:
           unzip -q report.zip -d playwright-report
           test -f playwright-report/index.html
 
-      - name: Determine PR number from run
+      - name: Determine PR number (robust)
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
@@ -51,7 +47,6 @@ jobs:
             exit 0
           fi
           echo "pr_num=$pr_num" >> "$GITHUB_OUTPUT"
-          echo "PR number detected: $pr_num"
 
       - name: Checkout Pages branch
         uses: actions/checkout@v4
@@ -59,7 +54,7 @@ jobs:
           ref: ui-test-artifacts-gh-pages
           path: pages
 
-      - name: Copy report and update latest
+      - name: Copy report into /test-reports/... and update latest
         env:
           RUN_ID: ${{ github.event.workflow_run.id }}
           PR_NUM: ${{ steps.pr.outputs.pr_num }}
@@ -124,13 +119,41 @@ jobs:
           git commit -m "Publish test report (run ${{ github.event.workflow_run.id }})"
           git push origin HEAD:ui-test-artifacts-gh-pages
 
-      - name: Expose latest report URL (job output)
-        id: out
+      - name: Slack notify (clean link to report index.html)
+        if: always()
         env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
           PR_NUM: ${{ steps.pr.outputs.pr_num }}
         run: |
           set -euo pipefail
-          base="https://selvarajkuppusamy.github.io/playwright-mocking-lab"
-          latest_url="${base}/test-reports/pr-${PR_NUM}/latest/"
-          echo "latest_url=$latest_url" >> "$GITHUB_OUTPUT"
-          echo "Latest report URL: $latest_url"
+
+          # Find the matching Workflow A run by SHA to get true test conclusion
+          runs_json="$(gh api "repos/$REPO/actions/workflows/playwright-ci-pages.yml/runs?event=pull_request&per_page=30")"
+          conclusion="$(echo "$runs_json" | jq -r --arg sha "$SHA" '.workflow_runs[] | select(.head_sha==$sha) | .conclusion' | head -n 1)"
+          run_url="$(echo "$runs_json" | jq -r --arg sha "$SHA" '.workflow_runs[] | select(.head_sha==$sha) | .html_url' | head -n 1)"
+
+          if [ "$conclusion" = "success" ]; then emoji="✅"; label="PASS"
+          elif [ "$conclusion" = "failure" ]; then emoji="❌"; label="FAIL"
+          else emoji="⚪"; label="${conclusion:-UNKNOWN}"
+          fi
+
+          report_url="https://selvarajkuppusamy.github.io/playwright-mocking-lab/test-reports/pr-${PR_NUM}/latest/index.html"
+
+          title="Playwright PR #${PR_NUM} — ${emoji} ${label}"
+
+          payload="$(jq -n \
+            --arg title "$title" \
+            --arg report "$report_url" \
+            --arg run "$run_url" \
+            '{
+              text: $title,
+              blocks: [
+                { "type": "section", "text": { "type": "mrkdwn", "text": ("*" + $title + "*") } },
+                { "type": "section", "text": { "type": "mrkdwn", "text": ("• *HTML report:* <" + $report + "|Open report>\n• *Test run:* <" + $run + "|Open workflow run>") } }
+              ]
+            }')"
+
+          curl -sS -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
