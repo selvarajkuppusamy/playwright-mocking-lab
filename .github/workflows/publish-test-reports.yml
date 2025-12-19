@@ -16,6 +16,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug - show triggering run info
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Triggered by workflow_run:"
+          echo "  repo:     $REPO"
+          echo "  run_id:   $RUN_ID"
+          echo "  name:     ${{ github.event.workflow_run.name }}"
+          echo "  status:   ${{ github.event.workflow_run.conclusion }}"
+          echo "  event:    ${{ github.event.workflow_run.event }}"
+
       - name: Download Playwright report artifact from triggering run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -26,6 +38,9 @@ jobs:
 
           echo "Fetching artifacts for run: $RUN_ID"
           artifacts_json="$(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts")"
+
+          echo "Artifacts found:"
+          echo "$artifacts_json" | jq -r '.artifacts[] | " - \(.name) (id=\(.id))"'
 
           artifact_id="$(echo "$artifacts_json" | jq -r '.artifacts[] | select(.name=="playwright-html-report") | .id' | head -n 1)"
           if [ -z "${artifact_id}" ] || [ "${artifact_id}" = "null" ]; then
@@ -39,12 +54,29 @@ jobs:
           mkdir -p playwright-report
           unzip -q report.zip -d playwright-report
 
+          echo "Downloaded report folder contents:"
+          ls -la playwright-report | sed -n '1,120p'
+
           if [ ! -f "playwright-report/index.html" ]; then
             echo "Expected playwright-report/index.html not found after unzip."
-            echo "Contents:"
-            ls -la playwright-report || true
             exit 1
           fi
+
+      - name: Determine PR number from run (robust)
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          pr_num="$(gh api "repos/$REPO/actions/runs/$RUN_ID" --jq '.pull_requests[0].number // empty')"
+          if [ -z "$pr_num" ]; then
+            echo "Could not determine PR number for run $RUN_ID. Skipping publish."
+            exit 0
+          fi
+          echo "pr_num=$pr_num" >> "$GITHUB_OUTPUT"
+          echo "PR number detected: $pr_num"
 
       - name: Checkout Pages branch
         uses: actions/checkout@v4
@@ -55,13 +87,13 @@ jobs:
       - name: Copy report into /test-reports/pr-XXXX/DD-MM-YYYY/HH-MM-SS/<run-id> and update latest
         env:
           RUN_ID: ${{ github.event.workflow_run.id }}
+          PR_NUM: ${{ steps.pr.outputs.pr_num }}
         run: |
           set -euo pipefail
 
-          # Extract PR number from workflow_run payload
-          PR_NUM="$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")"
-          if [ -z "$PR_NUM" ]; then
-            echo "Could not determine PR number. Skipping publish."
+          # If PR_NUM isn't set (e.g., step exited early), do nothing.
+          if [ -z "${PR_NUM:-}" ]; then
+            echo "PR_NUM is empty - nothing to publish."
             exit 0
           fi
 
@@ -88,6 +120,9 @@ jobs:
 
           echo "Published path: /test-reports/pr-${PR_NUM}/${DATE}/${TIME}/${RUN_ID}/"
           echo "Latest path:    /test-reports/pr-${PR_NUM}/latest/"
+
+          echo "Sanity tree (top):"
+          find pages/test-reports -maxdepth 3 -type d | sed -n '1,120p'
 
       - name: Prune reports older than 7 business days (Mon–Fri)
         run: |
