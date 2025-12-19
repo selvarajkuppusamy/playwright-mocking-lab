@@ -1,0 +1,99 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - button "Show Documentation Explorer" [ref=e5] [cursor=pointer]:
+      - img "c h icon"
+    - button "Show History" [ref=e6] [cursor=pointer]:
+      - img
+    - button "Re-fetch GraphQL schema" [ref=e7] [cursor=pointer]:
+      - img
+    - button "Open short keys dialog" [ref=e8] [cursor=pointer]:
+      - img
+    - button "Open settings dialog" [ref=e9] [cursor=pointer]:
+      - img
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - tablist "Select active operation" [ref=e14]:
+        - tab "CountryByCode" [selected] [ref=e15]:
+          - button "CountryByCode" [ref=e16] [cursor=pointer]
+      - button "New tab" [ref=e17] [cursor=pointer]:
+        - img
+      - generic [ref=e18]: countries.trevorblades.com
+    - tabpanel "CountryByCode" [ref=e19]:
+      - generic [ref=e20]:
+        - region "Query Editor" [ref=e21]:
+          - generic [ref=e23]:
+            - textbox [ref=e24]
+            - generic [ref=e27]:
+              - generic [ref=e28]:
+                - generic [ref=e29]: "1"
+                - generic [ref=e31] [cursor=pointer]: ▾
+                - text: "query CountryByCode($code: ID!) {"
+              - generic [ref=e32]:
+                - generic [ref=e33]: "2"
+                - generic [ref=e35] [cursor=pointer]: ▾
+                - text: "country(code: $code) {"
+              - generic [ref=e36]:
+                - generic [ref=e37]: "3"
+                - text: code
+              - generic [ref=e38]:
+                - generic [ref=e39]: "4"
+                - text: name
+              - generic [ref=e40]:
+                - generic [ref=e41]: "5"
+                - text: "}"
+              - generic [ref=e42]:
+                - generic [ref=e43]: "6"
+                - text: "}"
+          - toolbar "Editor Commands" [ref=e48]:
+            - button "Execute query (Ctrl-Enter)" [active] [ref=e49] [cursor=pointer]:
+              - img "r h icon"
+            - button "Prettify query (Shift-Ctrl-P)" [ref=e50] [cursor=pointer]:
+              - img
+            - button "Merge fragments into query (Shift-Ctrl-M)" [ref=e51] [cursor=pointer]:
+              - img
+            - button "Copy query (Shift-Ctrl-C)" [ref=e52] [cursor=pointer]:
+              - img
+        - generic [ref=e53]:
+          - button "Variables" [ref=e54] [cursor=pointer]
+          - button "Headers" [ref=e55] [cursor=pointer]
+          - button "Hide editor tools" [ref=e56] [cursor=pointer]:
+            - img
+        - region "Variables" [ref=e57]:
+          - generic [ref=e59]:
+            - textbox [ref=e60]
+            - generic [ref=e65]: "1"
+      - generic [ref=e71]:
+        - region "Result Window" [ref=e72]:
+          - generic [ref=e73]:
+            - textbox [ref=e74]
+            - generic [ref=e77]:
+              - generic [ref=e78]:
+                - generic [ref=e80] [cursor=pointer]: ▾
+                - text: "{"
+              - generic [ref=e81]:
+                - generic [ref=e83] [cursor=pointer]: ▾
+                - text: "\"errors\": ["
+              - generic [ref=e84]:
+                - generic [ref=e86] [cursor=pointer]: ▾
+                - text: "{"
+              - text: "\"message\": \"Variable \\\"$code\\\" of required type \\\"ID!\\\" was not provided.\","
+              - generic [ref=e87]:
+                - generic [ref=e89] [cursor=pointer]: ▾
+                - text: "\"locations\": ["
+              - generic [ref=e90]:
+                - generic [ref=e92] [cursor=pointer]: ▾
+                - text: "{"
+              - text: "\"line\": 1, \"column\": 21 } ] } ] }"
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - generic "Request resulted in an unintended cache pass." [ref=e99]: PASS
+            - generic [ref=e100]: 133ms
+            - generic [ref=e101]: "RequestID: 153020609577873122"
+          - generic [ref=e103]:
+            - generic [ref=e105]: IP limit
+            - generic [ref=e106]: 43 (out of 50) requests remaining
+            - generic [ref=e107]: (refills in 44s)
+```
