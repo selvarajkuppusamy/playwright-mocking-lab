@@ -2,7 +2,7 @@ name: Publish Test Reports to Pages Branch
 
 on:
   workflow_run:
-    workflows: ["Playwright UI Tests"]
+    workflows: ["Playwright CI (PR)"]
     types: [completed]
 
 permissions:
