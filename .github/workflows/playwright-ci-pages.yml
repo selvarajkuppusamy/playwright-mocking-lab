@@ -1,5 +1,7 @@
 name: Playwright CI (PR)
 
+# Intentionally kept only for PRs and not for pushes to master. 
+# But can be updated later to include pushes to branch or master as well.
 on:
   pull_request:
     branches: ["master"]
