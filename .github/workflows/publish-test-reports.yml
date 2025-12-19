@@ -1,0 +1,149 @@
+name: Publish Test Reports to Pages Branch
+
+on:
+  workflow_run:
+    workflows: ["Playwright CI (PR)"]
+    types: [completed]
+
+permissions:
+  contents: write   # push to pages branch
+  actions: read     # read/download artifacts from the triggering run
+
+jobs:
+  publish:
+    # Publish only when the triggering run came from a PR (not other events)
+    if: ${{ github.event.workflow_run.event == 'pull_request' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Playwright report artifact from triggering run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          echo "Fetching artifacts for run: $RUN_ID"
+          artifacts_json="$(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts")"
+
+          artifact_id="$(echo "$artifacts_json" | jq -r '.artifacts[] | select(.name=="playwright-html-report") | .id' | head -n 1)"
+          if [ -z "${artifact_id}" ] || [ "${artifact_id}" = "null" ]; then
+            echo "Artifact 'playwright-html-report' not found. Nothing to publish."
+            exit 0
+          fi
+
+          echo "Downloading artifact id: $artifact_id"
+          gh api "repos/$REPO/actions/artifacts/$artifact_id/zip" > report.zip
+
+          mkdir -p playwright-report
+          unzip -q report.zip -d playwright-report
+
+          if [ ! -f "playwright-report/index.html" ]; then
+            echo "Expected playwright-report/index.html not found after unzip."
+            echo "Contents:"
+            ls -la playwright-report || true
+            exit 1
+          fi
+
+      - name: Checkout Pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: ui-test-artifacts-gh-pages
+          path: pages
+
+      - name: Copy report into /test-reports/pr-XXXX/DD-MM-YYYY/HH-MM-SS/<run-id> and update latest
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+
+          # Extract PR number from workflow_run payload
+          PR_NUM="$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")"
+          if [ -z "$PR_NUM" ]; then
+            echo "Could not determine PR number. Skipping publish."
+            exit 0
+          fi
+
+          DATE="$(date +'%d-%m-%Y')"
+          TIME="$(date +'%H-%M-%S')"
+
+          DEST="pages/test-reports/pr-${PR_NUM}/${DATE}/${TIME}/${RUN_ID}"
+          mkdir -p "$DEST"
+          cp -R playwright-report/* "$DEST/"
+
+          # "latest" pointer (folder copy)
+          LATEST="pages/test-reports/pr-${PR_NUM}/latest"
+          rm -rf "$LATEST"
+          mkdir -p "$LATEST"
+          cp -R playwright-report/* "$LATEST/"
+
+          # Minimal landing page (optional)
+          if [ ! -f "pages/index.html" ]; then
+            cat > pages/index.html <<'HTML'
+          <!doctype html><html><head><meta charset="utf-8"><title>Test Reports</title></head>
+          <body><h1>Test Reports</h1><p>Browse <a href="./test-reports/">./test-reports/</a></p></body></html>
+          HTML
+          fi
+
+          echo "Published path: /test-reports/pr-${PR_NUM}/${DATE}/${TIME}/${RUN_ID}/"
+          echo "Latest path:    /test-reports/pr-${PR_NUM}/latest/"
+
+      - name: Prune reports older than 7 business days (Mon–Fri)
+        run: |
+          set -euo pipefail
+          ROOT="pages/test-reports"
+
+          # Compute cutoff date = 7 business days ago (skip Sat/Sun)
+          n=7
+          d="$(date +%Y-%m-%d)"
+          count=0
+          while [ $count -lt $n ]; do
+            d="$(date -d "$d - 1 day" +%Y-%m-%d)"
+            dow="$(date -d "$d" +%u)"  # 1=Mon ... 7=Sun
+            if [ "$dow" -le 5 ]; then
+              count=$((count+1))
+            fi
+          done
+          cutoff_epoch="$(date -d "$d 00:00:00" +%s)"
+          echo "Business-day cutoff date: $d"
+
+          shopt -s nullglob
+          for prdir in "$ROOT"/pr-*; do
+            [ -d "$prdir" ] || continue
+
+            for datedir in "$prdir"/*; do
+              base="$(basename "$datedir")"
+
+              # Skip non-date folders like "latest"
+              if [ "$base" = "latest" ]; then
+                continue
+              fi
+
+              # Expect DD-MM-YYYY
+              if epoch=$(date -d "$base 00:00:00" +%s 2>/dev/null); then
+                if [ "$epoch" -lt "$cutoff_epoch" ]; then
+                  echo "Deleting old date folder: $datedir"
+                  rm -rf "$datedir"
+                fi
+              else
+                echo "Skipping non-date folder: $datedir"
+              fi
+            done
+          done
+
+      - name: Commit & push Pages branch
+        run: |
+          set -euo pipefail
+          cd pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+
+          git commit -m "Publish test report (run ${{ github.event.workflow_run.id }})"
+          git push origin HEAD:ui-test-artifacts-gh-pages
