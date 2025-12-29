@@ -1,7 +1,5 @@
 name: Playwright CI (PR)
 
-# Intentionally kept only for PRs and not for pushes to master. 
-# But can be updated later to include pushes to branch or master as well.
 on:
   pull_request:
     branches: ["master"]
@@ -14,6 +12,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      report_url: ${{ steps.upload_report.outputs.artifact-url }}
 
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +35,7 @@ jobs:
         run: npx playwright test --reporter=html
 
       - name: Upload Playwright HTML report artifact
+        id: upload_report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -42,3 +43,25 @@ jobs:
           path: playwright-report/
           retention-days: 7
           if-no-files-found: warn
+
+  notify:
+    if: always()
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post Slack notification (PR)
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TEST_RESULT: ${{ needs.test.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          ARTIFACT_URL: ${{ needs.test.outputs.report_url }}
+        run: |
+          payload=$(cat <<EOF
+          {
+            "text": "*Playwright CI (PR)* - ${TEST_RESULT}\nPR: ${PR_URL}\nRun: ${RUN_URL}\nHTML report (download): ${ARTIFACT_URL}"
+          }
+          EOF
+          )
+          curl -X POST -H 'Content-type: application/json' --data "${payload}" "${SLACK_WEBHOOK_URL}"
+
