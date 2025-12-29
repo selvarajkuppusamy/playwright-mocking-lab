@@ -1,5 +1,6 @@
 # Playwright Mocking Lab
 
+
 A focused learning repository for **Track 1 – Topic 1: Playwright Mocking**. 
 
 This repo exists to learn and practice **API mocking in Playwright**, primarily for
