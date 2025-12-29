@@ -1,4 +1,4 @@
-# Playwright Mocking Lab 
+# Playwright Mocking Lab
 
 A focused learning repository for **Track 1 – Topic 1: Playwright Mocking**. 
 
