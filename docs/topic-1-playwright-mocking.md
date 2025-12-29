@@ -1,6 +1,14 @@
-## Track 1 – Topic 1: Playwright Mocking (REST → GraphQL)
+# Topic 1 — Playwright Mocking (REST → GraphQL)
 
-**Definition of Done (DoD)**  
+## Goal
+Learn and practice **API mocking in Playwright** for UI tests and selective E2E scenarios.
+
+The scope is intentionally minimal, practical, and **Definition-of-Done driven**.
+
+---
+
+## Definition of Done (DoD)
+
 This topic is DONE when I can:
 - Explain the concepts clearly
 - Demo them once without help
@@ -8,22 +16,13 @@ This topic is DONE when I can:
 
 ---
 
-## 🎯 Objective
-- Understand Playwright’s network interception model
-- Confidently mock REST and GraphQL APIs
-- Use mocks to make UI tests fast, stable, and deterministic
-
----
-
-## ✅ Topic 1 — Playwright Mocking (REST + GraphQL)
-
-### Mental Model (keep in mind)
+## Mental Model
 Browser → Playwright → Network interception → UI behavior  
 Mocks **replace the backend**, not the UI or user flows.
 
 ---
 
-### 1. Mocking Fundamentals
+## 1. Mocking Fundamentals
 - [x] Understand request flow: Browser → Playwright → route / HAR → response
 - [x] Know when mocking is useful (UI isolation, stability, speed)
 - [x] Know when NOT to mock (true E2E, backend validation)
@@ -31,7 +30,7 @@ Mocks **replace the backend**, not the UI or user flows.
 
 ---
 
-### 2. REST API Mocking
+## 2. REST API Mocking
 - [x] Identify REST calls using DevTools (Network tab)
 - [x] Intercept REST APIs using `page.route()` / `context.route()`
 - [x] Fulfill requests with custom JSON using `route.fulfill()`
@@ -42,18 +41,18 @@ Mocks **replace the backend**, not the UI or user flows.
 
 ---
 
-### 3. HAR-based Mocking
+## 3. HAR-based Mocking
 - [x] Record network traffic to HAR
 - [x] Replay API responses using `routeFromHAR()`
 - [x] Explain `embed` vs `omit` vs `attach`
 - [x] Update HAR entries using `update: true`
 - [x] Restrict HAR to specific URLs
-- [x] Understand that update can overwrite non-matching entries
+- [x] Understand update side effects
 - [x] Validate response structure (shape/signature check)
 
 ---
 
-### 4. GraphQL Mocking
+## 4. GraphQL Mocking
 - [x] Identify GraphQL requests and operation names
 - [x] Intercept GraphQL POST requests
 - [x] Mock GraphQL queries and mutations
@@ -63,7 +62,7 @@ Mocks **replace the backend**, not the UI or user flows.
 
 ---
 
-### 5. Mock Toggle / Control
+## 5. Mock Toggle / Control
 - [x] Add `USE_MOCKS` environment flag
 - [x] Run same tests in real vs mocked mode
 - [x] Control mocking behavior at runtime (not per test)
@@ -71,30 +70,7 @@ Mocks **replace the backend**, not the UI or user flows.
 
 ---
 
-### Topic 1 Done When:
-- [x] At least one UI test runs fully on mocked REST APIs
-- [x] At least one UI test runs on mocked GraphQL APIs
-- [x] HAR record → replay → update flow is understood
-- [x] Can explain the setup without referring to notes
-
-
----
-
 ## Notes
 - Keep implementations simple and explicit
 - Avoid abstractions in this topic
 - Refactoring and framework design come later
-
-
-
-## QUICK LOOK ON CONCEPTS - 
-
-- fulfill
-- abort
-- continue
-- record har
-- replay using har
-- update har 
-  - record only for specific url or conditions (query, operationName, payload, etc.)
-  - record/ update only if json structure changed (has both pros and cons)
-- mock toggle on off
