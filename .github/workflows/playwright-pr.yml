@@ -1,7 +1,5 @@
 name: Playwright CI (PR)
 
-# Intentionally kept only for PRs and not for pushes to master. 
-# But can be updated later to include pushes to branch or master as well.
 on:
   pull_request:
     branches: ["master"]
@@ -42,3 +40,24 @@ jobs:
           path: playwright-report/
           retention-days: 7
           if-no-files-found: warn
+
+  notify:
+    if: always()
+    needs: [test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Post Slack notification (PR)
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TEST_RESULT: ${{ needs.test.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          payload=$(cat <<EOF
+          {
+            "text": "*Playwright CI (PR)* - ${TEST_RESULT}\nPR: ${PR_URL}\nRun: ${RUN_URL}\nReport: (artifact in run)"
+          }
+          EOF
+          )
+          curl -X POST -H 'Content-type: application/json' --data "${payload}" "${SLACK_WEBHOOK_URL}"

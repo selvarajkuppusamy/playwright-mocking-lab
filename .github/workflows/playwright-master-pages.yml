@@ -1,0 +1,88 @@
+name: Playwright CI + Pages (master)
+
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers + OS deps
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        env:
+          USE_MOCKS: "true"
+        run: npx playwright test --reporter=html
+
+      - name: Upload Playwright HTML report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Upload Pages artifact (Playwright report)
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: playwright-report/
+
+  deploy:
+    if: always()
+    needs: [test]
+    runs-on: ubuntu-latest
+
+    outputs:
+      pages_url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Show Pages URL
+        run: >
+          echo "Pages URL: ${{ steps.deployment.outputs.page_url }}"
+
+  notify:
+    if: always()
+    needs: [test, deploy]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Post Slack notification (master + Pages)
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TEST_RESULT: ${{ needs.test.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PAGES_URL: ${{ needs.deploy.outputs.pages_url }}
+        run: |
+          payload=$(cat <<EOF
+          {
+            "text": "*Playwright CI (master)* - ${TEST_RESULT}\nReport: ${PAGES_URL}\nRun: ${RUN_URL}"
+          }
+          EOF
+          )
+          curl -X POST -H 'Content-type: application/json' --data "${payload}" "${SLACK_WEBHOOK_URL}"
