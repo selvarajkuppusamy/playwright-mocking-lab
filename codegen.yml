@@ -1,0 +1,12 @@
+schema: https://countries.trevorblades.com/graphql
+generates:
+  mocks/graphql/generated-types.ts:
+    plugins:
+      - typescript
+    config:
+      skipTypename: false
+      enumsAsTypes: true
+      maybeValue: T | null
+      avoidOptionals: false
+      scalars:
+        ID: string

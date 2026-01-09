@@ -8,20 +8,30 @@
   },
   "scripts": {
     "test": "playwright test",
-
     "test:mocks": "USE_MOCKS=true playwright test",
-
+    "test:typecheck": "tsc --noEmit",
     "har:check": "npm run test -- tests/04-har-structure-check.spec.ts --project=chromium",
     "har:update": "npm run test -- tests/03-update-har.spec.ts --project=chromium",
-
     "har:check:headed": "npm run har:check -- --headed",
-    "har:update:headed": "npm run har:update -- --headed"
+    "har:update:headed": "npm run har:update -- --headed",
+    "mock:record": "tsx scripts/record-mocks.ts",
+    "mock:record:interactive": "tsx scripts/record-interactive.ts",
+    "mock:extract": "tsx scripts/extract-mocks.ts",
+    "mock:update": "tsx scripts/update-mocks.ts",
+    "mock:update-registry": "tsx scripts/update-registry.ts",
+    "mock:validate": "tsx scripts/validate-mocks.ts",
+    "mock:codegen": "graphql-codegen --config codegen.yml"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@graphql-codegen/cli": "^6.1.0",
+    "@graphql-codegen/typescript": "^5.0.7",
+    "@graphql-codegen/typescript-operations": "^5.0.7",
     "@playwright/test": "^1.57.0",
-    "@types/node": "^25.0.2"
+    "@types/node": "^25.0.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
