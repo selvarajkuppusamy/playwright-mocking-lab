@@ -34,6 +34,14 @@ jobs:
           USE_MOCKS: "true"
         run: npx playwright test --reporter=html
 
+      - name: Check mock types
+        run: npm run test:typecheck
+        continue-on-error: true
+
+      - name: Warn on mock type issues
+        if: failure()
+        run: echo "::warning::⚠️ Mock type errors detected. Update mocks when possible."
+
       - name: Upload Playwright HTML report artifact
         id: upload_report
         if: always()
